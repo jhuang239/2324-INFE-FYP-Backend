@@ -15,10 +15,11 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 initialize_app(cred, {'storageBucket': 'fyp-file-storage.appspot.com'})
 bucket = storage.bucket()
 
-@router.post("/upload/{fileName}")
+@router.post("/upload}")
 async def upload_file(
     # user: user_dependency, 
-    fileName: str, file: UploadFile = File(...)):
+    # fileName: str, 
+    file: UploadFile = File(...)):
     file_bytes = await file.read()
 
     # Upload the file to Firebase Storage
