@@ -15,7 +15,7 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 initialize_app(cred, {'storageBucket': 'fyp-file-storage.appspot.com'})
 bucket = storage.bucket()
 
-@router.post("/upload}")
+@router.post("/upload")
 async def upload_file(
     # user: user_dependency, 
     # fileName: str, 
