@@ -11,6 +11,7 @@ class chat_history(BaseModel):
     def __setitem__(self, key, value):
         self.__dict__[key] = value
 
+
 class user(BaseModel):
     user_id: str
     name: str
@@ -19,3 +20,14 @@ class user(BaseModel):
     phone: str
     birthday: str
     activated: bool
+
+
+class file_structure(BaseModel):
+    id: str
+    user_id: str
+    name: str
+    parent_id: str
+    type: str
+
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value

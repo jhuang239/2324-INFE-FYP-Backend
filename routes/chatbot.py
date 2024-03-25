@@ -4,12 +4,15 @@ from typing import Annotated
 from .auth import get_current_user
 from starlette import status
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/chatbot",
+    tags=["chatbot"],
+)
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
 
 # chatbot
-@router.post("/chatbot")
+@router.post("/chatting")
 async def chatbot(user: user_dependency, promt=Body()):
     print(promt)
     if user is None:

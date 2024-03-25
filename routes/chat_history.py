@@ -8,12 +8,15 @@ from typing import Annotated
 from starlette import status
 
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/chat",
+    tags=["chat"],
+)
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
 
 # chat_history
-@router.get("/chat")
+@router.get("/chatHistory")
 async def get_chat():
     history = list_serial(collection_chat.find())
     return history
