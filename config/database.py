@@ -11,4 +11,4 @@ db = client.fyp_db
 
 collection_chat = db["chat_collections"]
 collection_user = db["user_collections"]
-
+collection_file = db["file_collections"]
