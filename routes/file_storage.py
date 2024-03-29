@@ -102,7 +102,8 @@ async def download_folder(folder_id: str):
         blob = bucket.blob(file["name"])
         blob.download_to_filename(f"temp/{user_id}/{file['name']}")
 
-    file_embedding.handle_file_embedding(f"temp/{user_id}")
+    file_embedding.handle_file_embedding(
+        f"temp/{user_id}", user_id.lower())
 
     return {"message": "Files downloaded successfully", "files": _files}
 
