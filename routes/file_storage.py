@@ -35,7 +35,7 @@ async def create_folder(user: user_dependency, passIn_object=Body()):
     parent_id = passIn_object["parent_id"]
     print(folder_id)
     folder = file_structure(id=folder_id, user_id=user["user_id"],
-                            name=folder_name, parent_id=parent_id, type=folder_type)
+                            name=folder_name, parent_id=parent_id, type=folder_type, updated_at=datetime.datetime.now(), created_at=datetime.datetime.now())
     collection_file.insert_one(folder.dict())
     return {"message": "Folder created successfully"}
 
@@ -83,7 +83,7 @@ async def upload_file(user: user_dependency, parent_id: str, file: UploadFile = 
     file_name = file_id+"_"+file.filename
     file_type = "file"
     file_obj = file_structure(id=file_id, user_id=user["user_id"],
-                              name=file_name, parent_id=parent_id, type=file_type)
+                              name=file_name, parent_id=parent_id, type=file_type,updated_at=datetime.datetime.now(), created_at=datetime.datetime.now())
     collection_file.insert_one(file_obj.dict())
 
     file_bytes = await file.read()

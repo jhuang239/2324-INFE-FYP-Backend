@@ -28,6 +28,8 @@ class file_structure(BaseModel):
     name: str
     parent_id: str
     type: str
+    created_at: datetime
+    updated_at: datetime
 
     def __setitem__(self, key, value):
         self.__dict__[key] = value
