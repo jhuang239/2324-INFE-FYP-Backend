@@ -8,7 +8,7 @@ from starlette import status
 from embedding import file_embedding
 from config.database import collection_quiz
 from models.models import quiz
-from email_func.send_email import send_email
+from email_func.send_email import send_email_background
 
 router = APIRouter(
     prefix="/chatbot",
@@ -49,7 +49,7 @@ def chatwithdoc(user: user_dependency, prompt=Body()):
     )
     return response
 
-async def generate_question_background(document_name: str, num_questions: int, index_name: str, user: user_dependency):
+def generate_question_background(document_name: str, num_questions: int, index_name: str, user: user_dependency, now: datetime.datetime, quiz_id: str, quiz_name: str):
     response = file_embedding.start_conversation(
         query="Please help to summarize the " + document_name +
         " as detailed as possible, list out the elements of the document, and provide the key points with explanations, exclude the author's information, exclude the page content about Intended Learning Outcomes.",
@@ -61,11 +61,8 @@ async def generate_question_background(document_name: str, num_questions: int, i
 
     print (user["email"])
 
-    now = datetime.datetime.now()
-
-    quiz_id = str(uuid.uuid4())
-    quiz_name = quiz_id + "_" + now.strftime("%Y-%m-%d %H:%M:%S")
-    print(quiz_name)
+    # quiz_id = str(uuid.uuid4())
+    # quiz_name = quiz_id + "_" + now.strftime("%Y-%m-%d %H:%M:%S")
     quiz_time = now
     quiz_content = mcq
 
@@ -74,19 +71,23 @@ async def generate_question_background(document_name: str, num_questions: int, i
     
     collection_quiz.insert_one(quiz_data.dict())
     print("Quiz generated successfully")
-    await send_email("Quiz generated successfully", user["email"], quiz_name)
-    print("Email sent successfully")
+    # send_email_background("Quiz generated successfully", user["email"], quiz_name)
     return
     
 
 
 @router.get("/summarize")
-def summarize(user: user_dependency, document_name: str, num_questions: int, background_task: BackgroundTasks):
+def summarize(user: user_dependency, document_name: str, num_questions: int, background_tasks: BackgroundTasks):
 
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid authentication credentials")
     print(user)
 
-    background_task.add_task(generate_question_background, document_name, num_questions, user["user_id"].lower(), user)
+    now = datetime.datetime.now()
+    quiz_id = str(uuid.uuid4())
+    quiz_name = quiz_id + "_" + now.strftime("%Y-%m-%d %H:%M:%S")
+
+    background_tasks.add_task(generate_question_background, document_name, num_questions, user["user_id"].lower(), user, now, quiz_id, quiz_name)
+    send_email_background(background_tasks=background_tasks, subject="Quiz generated successfully", email_to=user["email"], quiz_name=quiz_name, type="quiz")
     return {"message": "Summarization and MCQ generation in progress, please check your email for the results."}

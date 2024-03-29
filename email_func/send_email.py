@@ -17,9 +17,31 @@ conf = ConnectionConfig(
     VALIDATE_CERTS = True
 )
 
-async def send_email(subject: str, email_to: str, quiz_name: dict):
+# def send_email(subject: str, email_to: str, quiz_name: dict, type: str):
+#     html = ""
 
-    html = """<p>Your quiz: """ + quiz_name + """ has been generated. Please check it on the application.</p>"""
+#     if type == "quiz":
+#         html = """<p>Your quiz: """ + quiz_name + """ has been generated. Please check it on the application.</p>"""
+#     else:
+#         html = """<p>The file is successfully uploaded and embedded</p>"""
+
+#     message = MessageSchema(
+#         subject=subject,
+#         recipients=[email_to],
+#         body=html,
+#         subtype=MessageType.html
+#     )
+
+#     fm = FastMail(conf)
+#     fm.send_message(message)
+
+def send_email_background(background_tasks: BackgroundTasks, subject: str, email_to: str, quiz_name: dict, type: str):
+    html = ""
+
+    if type == "quiz":
+        html = """<p>Your quiz: """ + quiz_name + """ has been generated. Please check it on the application.</p>"""
+    else:
+        html = """<p>The file is successfully uploaded and embedded</p>"""
 
     message = MessageSchema(
         subject=subject,
@@ -29,5 +51,4 @@ async def send_email(subject: str, email_to: str, quiz_name: dict):
     )
 
     fm = FastMail(conf)
-
-    await fm.send_message(message)
+    background_tasks.add_task(fm.send_message, message)

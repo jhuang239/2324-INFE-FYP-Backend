@@ -55,3 +55,13 @@ class quiz(BaseModel):
 
     def __setitem__(self, key, value):
         self.__dict__[key] = value
+
+class embedded_file(BaseModel):
+    user_id: str
+    file_id: str
+    file_name: str
+    created_at: datetime
+    updated_at: datetime
+
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value

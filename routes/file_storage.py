@@ -1,14 +1,16 @@
 import datetime
 import os
+import shutil
 from config.firebaeConfig import cred
 from firebase_admin import storage, initialize_app
-from fastapi import File, UploadFile, APIRouter, Depends, HTTPException, Body
+from fastapi import File, UploadFile, APIRouter, Depends, HTTPException, Body, BackgroundTasks
 from .auth import get_current_user
 from typing import Annotated
 from starlette import status
-from models.models import file_structure
-from config.database import collection_file
+from models.models import file_structure, embedded_file
+from config.database import collection_file, collection_embedded_file
 from embedding import file_embedding
+from email_func.send_email import send_email_background
 import uuid
 
 router = APIRouter(
@@ -23,7 +25,9 @@ bucket = storage.bucket()
 
 # * API to create a folder
 @router.post("/createFolder")
-async def create_folder(user: user_dependency, passIn_object=Body()):
+async def create_folder(
+        user: user_dependency,
+        passIn_object=Body()):
 
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
@@ -73,24 +77,46 @@ async def get_files_and_folders(user: user_dependency, parent_id: str):
 
 # * API to upload a file
 @router.post("/upload")
-async def upload_file(user: user_dependency, parent_id: str, file: UploadFile = File(...)):
+async def upload_file(
+    user: user_dependency,
+    parent_id: str,
+    files: list[UploadFile],
+    background_tasks: BackgroundTasks
+):
 
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid authentication credentials")
+    user_id = user["user_id"]
+    os.makedirs(f"temp/{user_id}", exist_ok=True)
+    embedded_files = collection_embedded_file.find({"user_id": user_id}, {"_id": 0})
 
-    file_id = str(uuid.uuid4())
-    file_name = file_id+"_"+file.filename
-    file_type = "file"
-    file_obj = file_structure(id=file_id, user_id=user["user_id"],
-                              name=file_name, parent_id=parent_id, type=file_type,updated_at=datetime.datetime.now(), created_at=datetime.datetime.now())
-    collection_file.insert_one(file_obj.dict())
+    for file in files:
+        exist = False
+        file_id = str(uuid.uuid4())
+        file_name = file_id+"_"+file.filename
+        file_type = "file"
+        file_obj = file_structure(id=file_id, user_id=user["user_id"], name=file_name, parent_id=parent_id, type=file_type,updated_at=datetime.datetime.now(), created_at=datetime.datetime.now())
+        collection_file.insert_one(file_obj.dict())
 
-    file_bytes = await file.read()
-    blob = bucket.blob(file_name)
-    blob.upload_from_string(file_bytes, content_type=file.content_type)
+        for embedded in embedded_files:
+            if file.filename == embedded["file_name"]:
+                exist = True
+                break
+        if not exist:
+            file_bytes = await file.read()
+            blob = bucket.blob(file_name)
+            blob.upload_from_string(file_bytes, content_type=file.content_type)
+            embedded_file_obj = embedded_file(user_id=user_id, file_id=file_id, file_name=file.filename,
+                                            created_at=datetime.datetime.now(), updated_at=datetime.datetime.now())
+            collection_embedded_file.insert_one(embedded_file_obj.dict())
+            blob.download_to_filename(f"temp/{user_id}/{file_name}")
+            
+    background_tasks.add_task(handle_file_upload_and_embedding, user["user_id"])
+    send_email_background(background_tasks=background_tasks, subject="Files uploaded successfully and embedded", email_to=user["email"], quiz_name="", type="U_E")
 
-    return {"message": "File uploaded successfully"}
+
+    return {"message": "Files uploaded successfully and embedding in progress, you will receive an email once it is done."}
 
 
 # * API to get file url for 7 days
@@ -123,25 +149,25 @@ async def download_file(user: user_dependency, file_name: str):
 
 
 # * API to download all files in a folder
-@router.get("/downloadFolder")
-async def download_folder(user: user_dependency, folder_id: str):
+# @router.get("/downloadFolder")
+# async def download_folder(user: user_dependency, folder_id: str):
 
-    if user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Invalid authentication credentials")
+#     if user is None:
+#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+#                             detail="Invalid authentication credentials")
 
-    user_id = user["user_id"]
+#     user_id = user["user_id"]
 
-    os.makedirs(f"temp/{user_id}", exist_ok=True)
-    _files = get_files_in_folder(folder_id, user["user_id"], [])
-    for file in _files:
-        blob = bucket.blob(file["name"])
-        blob.download_to_filename(f"temp/{user_id}/{file['name']}")
+#     os.makedirs(f"temp/{user_id}", exist_ok=True)
+#     _files = get_files_in_folder(folder_id, user["user_id"], [])
+#     for file in _files:
+#         blob = bucket.blob(file["name"])
+#         blob.download_to_filename(f"temp/{user_id}/{file['name']}")
 
-    file_embedding.handle_file_embedding(
-        f"temp/{user_id}", user["user_id"].lower())
+#     file_embedding.handle_file_embedding(
+#         f"temp/{user_id}", user["user_id"].lower())
 
-    return {"message": "Files downloaded successfully", "files": _files}
+#     return {"message": "Files downloaded successfully", "files": _files}
 
 
 # * API to list all files
@@ -208,3 +234,19 @@ def get_files_in_folder(parent_id, user_id, _files):
         else:
             _files.append(file)
     return _files
+
+
+# * background task to handle file upload and embedding
+def handle_file_upload_and_embedding(user_id: str):
+    
+    if not os.listdir(f"temp/{user_id}"):
+        return
+    else:
+        file_embedding.handle_file_embedding(
+            f"temp/{user_id}", user_id.lower())
+        # files = os.listdir(f"temp/{user_id}")
+        # print("files", files)
+        print("Files embedded")
+        shutil.rmtree(f"temp/{user_id}")
+        print("Temp folder removed")
+        return
