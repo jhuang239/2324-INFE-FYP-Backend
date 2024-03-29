@@ -32,6 +32,7 @@ def chatwithdoc(prompt=Body()):
             (message['question'], message['chat_history']))
 
     print("chat_history", chat_history_tuple)
+
     response = file_embedding.start_conversation(
         query=prompt['query'],
         pass_in_index_name=prompt['index_name'],
@@ -41,11 +42,11 @@ def chatwithdoc(prompt=Body()):
 
 
 @router.get("/summarize")
-def summarize(document_name: str, num_questions: int):
+def summarize(document_name: str, num_questions: int, index_name: str):
     response = file_embedding.start_conversation(
         query="Please help to summarize the " + document_name +
-        " as detailed as possible, list out the elements of the document, and provide the key points with explanations, not need to include the information of author and date.",
-        pass_in_index_name="kim1118")
+        " as detailed as possible, list out the elements of the document, and provide the key points with explanations, exclude the author's information, exclude the page content about Intended Learning Outcomes.",
+        pass_in_index_name=index_name)
 
     answer = response["answer"]
     mcq = file_embedding.generate_mcq_from_document(answer, num_questions)

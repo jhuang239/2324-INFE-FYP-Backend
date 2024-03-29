@@ -31,3 +31,25 @@ class file_structure(BaseModel):
 
     def __setitem__(self, key, value):
         self.__dict__[key] = value
+
+
+class chat_history_doc(BaseModel):
+    user_id: str
+    chat_name: str
+    time: datetime
+    message: list
+    document: str
+
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
+
+class quiz(BaseModel):
+    user_id: str
+    quiz_name: str
+    time: datetime
+    question: list
+    answer: list
+
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
