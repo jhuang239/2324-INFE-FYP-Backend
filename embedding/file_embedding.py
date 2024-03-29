@@ -64,6 +64,9 @@ def handle_file_embedding(file_path: str, pass_in_index_name: str):
 
 # * Start conversation
 def start_conversation(query: str, pass_in_index_name: str, chat_history: List[Dict[str, Any]] = []):
+
+    print("chat_history", chat_history)
+
     embeddings = OpenAIEmbeddings(
         model="text-embedding-3-large", api_key=OPENAI_API_KEY)
     search = PinecineLangchain.from_existing_index(

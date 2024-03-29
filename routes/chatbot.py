@@ -23,11 +23,20 @@ async def chatbot(user: user_dependency, promt=Body()):
     return response
 
 
-@router.get("/chatwithdoc")
-def chatwithdoc(query: str):
+@router.post("/chatwithdoc")
+def chatwithdoc(prompt=Body()):
+
+    chat_history_tuple = []
+    for message in prompt['chat_history']:
+        chat_history_tuple.append(
+            (message['question'], message['chat_history']))
+
+    print("chat_history", chat_history_tuple)
     response = file_embedding.start_conversation(
-        query=query,
-        pass_in_index_name="kim1118")
+        query=prompt['query'],
+        pass_in_index_name=prompt['index_name'],
+        chat_history=chat_history_tuple
+    )
     return response
 
 
