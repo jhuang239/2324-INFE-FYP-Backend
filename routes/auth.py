@@ -35,8 +35,8 @@ def authenticate_user(username: str, password: str):
         return False
     return user
 
-def create_access_token(name: str, user_id: str, expires_delta: timedelta):
-    encode = {"sub": name, "id": user_id}
+def create_access_token(name: str, user_id: str, email: str, expires_delta: timedelta):
+    encode = {"sub": name, "id": user_id, "email": email}
     expires = datetime.utcnow() + expires_delta
     encode.update({"exp": expires})
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -46,9 +46,10 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         name: str = payload.get("sub")
         user_id: str = payload.get("id")
+        email: str = payload.get("email")
         if name is None or user_id is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
-        return {"name": name, "user_id": user_id}
+        return {"name": name, "user_id": user_id, "email": email}
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
 
@@ -71,5 +72,5 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     user = authenticate_user(form_data.username, form_data.password)
     if(not user):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
-    token = create_access_token(user["name"], user["user_id"], timedelta(minutes=30))
+    token = create_access_token(user["name"], user["user_id"], user['email'], timedelta(minutes=30))
     return {'access_token': token, 'token_type': 'bearer'}

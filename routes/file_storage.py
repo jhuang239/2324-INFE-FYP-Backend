@@ -23,17 +23,18 @@ bucket = storage.bucket()
 
 # * API to create a folder
 @router.post("/createFolder")
-async def create_folder(
-    # user: user_dependency,
-    passIn_object=Body()
-):
-    user_id = "Kim1118"
+async def create_folder(user: user_dependency, passIn_object=Body()):
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
+
     folder_id = str(uuid.uuid4())
     folder_type = "folder"
     folder_name = passIn_object["name"]
     parent_id = passIn_object["parent_id"]
     print(folder_id)
-    folder = file_structure(id=folder_id, user_id=user_id,
+    folder = file_structure(id=folder_id, user_id=user["user_id"],
                             name=folder_name, parent_id=parent_id, type=folder_type)
     collection_file.insert_one(folder.dict())
     return {"message": "Folder created successfully"}
@@ -41,28 +42,47 @@ async def create_folder(
 
 # * API to get all folders based on parent_id
 @router.get("/getFolders")
-async def get_folders(parent_id: str):
-    user_id = "Kim1118"
+async def get_folders(user: user_dependency, parent_id: str):
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
+
     folders = collection_file.find(
-        {"user_id": user_id, "parent_id": parent_id, "type": "folder"}, {"_id": 0})
+        {"user_id": user["user_id"], "parent_id": parent_id, "type": "folder"}, {"_id": 0})
     folder_list = []
     for folder in folders:
         folder_list.append(folder)
     return {"message": "Folders retrieved successfully", "folders": folder_list}
 
 
+@router.get("/getFilesAndFolders")
+async def get_files_and_folders(user: user_dependency, parent_id: str):
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
+
+    files = collection_file.find(
+        {"user_id": user["user_id"], "parent_id": parent_id}, {"_id": 0})
+    file_list = []
+    for file in files:
+        file_list.append(file)
+    return {"message": "Files retrieved successfully", "files": file_list}
+
+
 # * API to upload a file
 @router.post("/upload")
-async def upload_file(
-    # user: user_dependency,
-        parent_id: str,
-        file: UploadFile = File(...)):
+async def upload_file(user: user_dependency, parent_id: str, file: UploadFile = File(...)):
 
-    user_id = "Kim1118"
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
+
     file_id = str(uuid.uuid4())
     file_name = file_id+"_"+file.filename
     file_type = "file"
-    file_obj = file_structure(id=file_id, user_id=user_id,
+    file_obj = file_structure(id=file_id, user_id=user["user_id"],
                               name=file_name, parent_id=parent_id, type=file_type)
     collection_file.insert_one(file_obj.dict())
 
@@ -75,7 +95,12 @@ async def upload_file(
 
 # * API to get file url for 7 days
 @router.get("/getPath")
-async def get_path(file_name: str):
+async def get_path(user: user_dependency, file_name: str):
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
+
     blob = bucket.blob(file_name)
     download_url = blob.generate_signed_url(
         datetime.timedelta(days=7), method='GET')
@@ -85,7 +110,12 @@ async def get_path(file_name: str):
 
 # * API to download a file in local storage
 @router.get("/download")
-async def download_file(file_name: str):
+async def download_file(user: user_dependency, file_name: str):
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
+
     filePath = f"temp/{file_name}"
     blob = bucket.blob(file_name)
     blob.download_to_filename(filePath)
@@ -94,23 +124,32 @@ async def download_file(file_name: str):
 
 # * API to download all files in a folder
 @router.get("/downloadFolder")
-async def download_folder(folder_id: str):
-    user_id = "Kim1118"
-    os.makedirs(f"temp/{user_id}", exist_ok=True)
-    _files = get_files_in_folder(folder_id, user_id, [])
+async def download_folder(user: user_dependency, folder_id: str):
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
+
+    os.makedirs(f"temp/{user["user_id"]}", exist_ok=True)
+    _files = get_files_in_folder(folder_id, user["user_id"], [])
     for file in _files:
         blob = bucket.blob(file["name"])
-        blob.download_to_filename(f"temp/{user_id}/{file['name']}")
+        blob.download_to_filename(f"temp/{user["user_id"]}/{file['name']}")
 
     file_embedding.handle_file_embedding(
-        f"temp/{user_id}", user_id.lower())
+        f"temp/{user["user_id"]}", user["user_id"].lower())
 
     return {"message": "Files downloaded successfully", "files": _files}
 
 
 # * API to list all files
 @router.get("/list")
-async def list_files():
+async def list_files(user: user_dependency):
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
+
     files = bucket.list_blobs()
     file_list = []
     for file in files:
@@ -120,7 +159,12 @@ async def list_files():
 
 # * API to delete a file
 @router.delete("/delete")
-async def delete_file(file_name: str):
+async def delete_file(user: user_dependency, file_name: str):
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
+
     blob = bucket.blob(file_name)
     blob.delete()
     collection_file.delete_one({"name": file_name})
@@ -129,9 +173,13 @@ async def delete_file(file_name: str):
 
 # * API to delete a folder
 @router.delete("/deleteFolder")
-async def delete_folder(folder_id: str):
-    user_id = "Kim1118"
-    message = delete_sub_folders_and_files(folder_id, user_id)
+async def delete_folder(user: user_dependency, folder_id: str):
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
+
+    message = delete_sub_folders_and_files(folder_id, user["user_id"])
     return message
 
 
