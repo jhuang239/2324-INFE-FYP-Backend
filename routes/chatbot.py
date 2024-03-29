@@ -29,18 +29,22 @@ async def chatbot(user: user_dependency, promt=Body()):
 
 
 @router.post("/chatwithdoc")
-def chatwithdoc(prompt=Body()):
+def chatwithdoc(user: user_dependency, prompt=Body()):
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
 
     chat_history_tuple = []
-    for message in prompt['chat_history']:
+    for message in prompt['history']:
         chat_history_tuple.append(
-            (message['question'], message['chat_history']))
+            (message['question'], message['answer']))
 
     print("chat_history", chat_history_tuple)
 
     response = file_embedding.start_conversation(
         query=prompt['query'],
-        pass_in_index_name=prompt['index_name'],
+        pass_in_index_name=user["user_id"].lower(),
         chat_history=chat_history_tuple
     )
     return response
