@@ -46,10 +46,10 @@ class chat_history_doc(BaseModel):
 
 class quiz(BaseModel):
     user_id: str
+    quiz_id: str
     quiz_name: str
     time: datetime
-    question: list
-    answer: list
+    content: list
 
     def __setitem__(self, key, value):
         self.__dict__[key] = value
