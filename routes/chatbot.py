@@ -61,6 +61,7 @@ async def generate_question_background(document_name: str, num_questions: int, i
 
     quiz_id = str(uuid.uuid4())
     quiz_name = quiz_id + "_" + now.strftime("%Y-%m-%d %H:%M:%S")
+    print(quiz_name)
     quiz_time = now
     quiz_content = mcq
 
@@ -76,12 +77,12 @@ async def generate_question_background(document_name: str, num_questions: int, i
 
 
 @router.get("/summarize")
-def summarize(user: user_dependency, document_name: str, num_questions: int, index_name: str, background_task: BackgroundTasks):
+def summarize(user: user_dependency, document_name: str, num_questions: int, background_task: BackgroundTasks):
 
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid authentication credentials")
     print(user)
 
-    background_task.add_task(generate_question_background, document_name, num_questions, index_name, user)
+    background_task.add_task(generate_question_background, document_name, num_questions, user["user_id"].lower(), user)
     return {"message": "Summarization and MCQ generation in progress, please check your email for the results."}
