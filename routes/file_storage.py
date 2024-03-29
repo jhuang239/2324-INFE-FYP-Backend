@@ -130,14 +130,16 @@ async def download_folder(user: user_dependency, folder_id: str):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid authentication credentials")
 
-    os.makedirs(f"temp/{user["user_id"]}", exist_ok=True)
+    user_id = user["user_id"]
+
+    os.makedirs(f"temp/{user_id}", exist_ok=True)
     _files = get_files_in_folder(folder_id, user["user_id"], [])
     for file in _files:
         blob = bucket.blob(file["name"])
-        blob.download_to_filename(f"temp/{user["user_id"]}/{file['name']}")
+        blob.download_to_filename(f"temp/{user_id}/{file['name']}")
 
     file_embedding.handle_file_embedding(
-        f"temp/{user["user_id"]}", user["user_id"].lower())
+        f"temp/{user_id}", user["user_id"].lower())
 
     return {"message": "Files downloaded successfully", "files": _files}
 
