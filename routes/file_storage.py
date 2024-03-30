@@ -9,7 +9,7 @@ from typing import Annotated
 from starlette import status
 from models.models import file_structure, embedded_file
 from config.database import collection_file, collection_embedded_file
-from embedding import file_embedding
+from embedding.file_embedding import handle_file_embedding
 from email_func.send_email import send_email_background
 import uuid
 
@@ -52,14 +52,28 @@ async def get_folders(user: user_dependency, parent_id: str):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid authentication credentials")
 
-    folders = collection_file.find(
-        {"user_id": user["user_id"], "parent_id": parent_id, "type": "folder"}, {"_id": 0})
-    folder_list = []
-    for folder in folders:
-        folder_list.append(folder)
-    return {"message": "Folders retrieved successfully", "folders": folder_list}
+    folders = list(collection_file.find(
+        {"user_id": user["user_id"], "parent_id": parent_id, "type": "folder"}, {"_id": 0}))
+    # folder_list = []
+    # for folder in folders:
+    #     folder_list.append(folder)
+    return {"message": "Folders retrieved successfully", "folders": folders}
 
 
+# * API to get all files based on parent_id
+@router.get("/getFiles")
+async def get_files(user: user_dependency, parent_id: str):
+    
+        if user is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                detail="Invalid authentication credentials")
+    
+        files = list(collection_file.find(
+            {"user_id": user["user_id"], "parent_id": parent_id, "type": "file"}, {"_id": 0}))
+        return {"message": "Files retrieved successfully", "files": files}
+
+
+# * API to get all files and folders based on parent_id
 @router.get("/getFilesAndFolders")
 async def get_files_and_folders(user: user_dependency, parent_id: str):
 
@@ -67,12 +81,12 @@ async def get_files_and_folders(user: user_dependency, parent_id: str):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid authentication credentials")
 
-    files = collection_file.find(
-        {"user_id": user["user_id"], "parent_id": parent_id}, {"_id": 0})
-    file_list = []
-    for file in files:
-        file_list.append(file)
-    return {"message": "Files retrieved successfully", "files": file_list}
+    files = list(collection_file.find(
+        {"user_id": user["user_id"], "parent_id": parent_id}, {"_id": 0}))
+    # file_list = []
+    # for file in files:
+    #     file_list.append(file)
+    return {"message": "Files retrieved successfully", "files": files}
 
 
 # * API to upload a file
@@ -112,7 +126,7 @@ async def upload_file(
             collection_embedded_file.insert_one(embedded_file_obj.dict())
             blob.download_to_filename(f"temp/{user_id}/{file_name}")
             
-    background_tasks.add_task(handle_file_upload_and_embedding, user["user_id"])
+    background_tasks.add_task(handle_and_embedding, user["user_id"])
     send_email_background(background_tasks=background_tasks, subject="Files uploaded successfully and embedded", email_to=user["email"], quiz_name="", type="U_E")
 
 
@@ -135,17 +149,17 @@ async def get_path(user: user_dependency, file_name: str):
 
 
 # * API to download a file in local storage
-@router.get("/download")
-async def download_file(user: user_dependency, file_name: str):
+# @router.get("/download")
+# async def download_file(user: user_dependency, file_name: str):
 
-    if user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Invalid authentication credentials")
+#     if user is None:
+#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+#                             detail="Invalid authentication credentials")
 
-    filePath = f"temp/{file_name}"
-    blob = bucket.blob(file_name)
-    blob.download_to_filename(filePath)
-    return {"message": "File downloaded successfully", "file_path": filePath}
+#     filePath = f"temp/{file_name}"
+#     blob = bucket.blob(file_name)
+#     blob.download_to_filename(filePath)
+#     return {"message": "File downloaded successfully", "file_path": filePath}
 
 
 # * API to download all files in a folder
@@ -187,7 +201,7 @@ async def list_files(user: user_dependency):
 
 # * API to delete a file
 @router.delete("/delete")
-async def delete_file(user: user_dependency, file_name: str):
+async def delete_file(user: user_dependency, file_name: str, background_tasks: BackgroundTasks):
 
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
@@ -201,14 +215,81 @@ async def delete_file(user: user_dependency, file_name: str):
 
 # * API to delete a folder
 @router.delete("/deleteFolder")
-async def delete_folder(user: user_dependency, folder_id: str):
+async def delete_folder(user: user_dependency, folder_id: str, background_tasks: BackgroundTasks):
 
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid authentication credentials")
 
-    message = delete_sub_folders_and_files(folder_id, user["user_id"])
-    return message
+    background_tasks.add_task(delete_sub_folders_and_files, folder_id, user["user_id"])
+    send_email_background(background_tasks=background_tasks, subject="Folders and files deleted successfully", email_to=user["email"], quiz_name="", type="D")
+    return {"message": "folders and file delete in progress, you will receive an email once it is done."}
+
+
+# * API to move a file
+@router.put("/moveFile")
+async def move_file(user: user_dependency, passIn_object=Body()):
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
+
+    file_id = passIn_object["file_id"]
+    parent_id = passIn_object["parent_id"]
+    collection_file.update_one({"id": file_id}, {
+        "$set": {"parent_id": parent_id}})
+    return {"message": "File moved successfully"}
+
+
+# * API to move a folder
+@router.put("/moveFolder")
+async def move_folder(user: user_dependency, passIn_object=Body()):
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
+
+    folder_id = passIn_object["folder_id"]
+    parent_id = passIn_object["parent_id"]
+    collection_file.update_one({"id": folder_id}, {
+        "$set": {"parent_id": parent_id}})
+    return {"message": "Folder moved successfully"}
+
+
+# * API to rename a file
+@router.put("/renameFile")
+async def rename_file(user: user_dependency, passIn_object=Body()):
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
+
+    file_id = passIn_object["file_id"]
+    original_file_name = passIn_object["original_file_name"]
+    file_name = passIn_object["file_name"]
+    collection_file.update_one({"id": file_id}, {
+        "$set": {"name": file_name}})
+    bucket.rename_blob(bucket.blob(original_file_name), file_name)
+    return {"message": "File renamed successfully"}
+
+# * API to rename a folder
+@router.put("/renameFolder")
+async def rename_folder(user: user_dependency, passIn_object=Body()):
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
+
+    folder_id = passIn_object["folder_id"]
+    folder_name = passIn_object["folder_name"]
+    collection_file.update_one({"id": folder_id}, {
+        "$set": {"name": folder_name}})
+    return {"message": "Folder renamed successfully"}
+
+
+# * API to upload public file
+
+
 
 
 # * Function to delete sub folders and files
@@ -221,7 +302,7 @@ def delete_sub_folders_and_files(parent_id, user_id):
     collection_file.delete_one({"id": parent_id})
     collection_file.delete_many({"parent_id": parent_id})
     bucket.delete_blobs(blobs=list(bucket.list_blobs(prefix=parent_id)))
-    return {"message": "Folder deleted successfully"}
+    print("Folder deleted successfully")
 
 
 # * Function to get all files in a folder
@@ -237,12 +318,12 @@ def get_files_in_folder(parent_id, user_id, _files):
 
 
 # * background task to handle file upload and embedding
-def handle_file_upload_and_embedding(user_id: str):
+def handle_and_embedding(user_id: str):
     
     if not os.listdir(f"temp/{user_id}"):
         return
     else:
-        file_embedding.handle_file_embedding(
+        handle_file_embedding(
             f"temp/{user_id}", user_id.lower())
         # files = os.listdir(f"temp/{user_id}")
         # print("files", files)

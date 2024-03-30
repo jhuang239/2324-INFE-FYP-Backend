@@ -16,10 +16,10 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 
 
 # chat_history
-@router.get("/chatHistory")
-async def get_chat():
-    history = list_serial(collection_chat.find())
-    return history
+# @router.get("/chatHistory")
+# async def get_chat():
+#     history = list_serial(collection_chat.find())
+#     return history
 
 
 @router.get("/chat/{chat_name}")
@@ -65,7 +65,12 @@ async def update_chat(user: user_dependency, id: str, history=Body()):
 
 
 @router.delete("/chat/{id}")
-async def delete_chat(id: str):
+async def delete_chat(user: user_dependency, id: str):
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
+
     result = collection_chat.find_one_and_delete({"_id": ObjectId(id)})
     if (result):
         return {"id": str(result["_id"])}

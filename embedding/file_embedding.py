@@ -31,6 +31,24 @@ def parse_json(text):
     return dict_list
 
 
+# * remove vector from pinecone
+# def remove_vector_from_pinecone(index_name: str, metadata: dict):
+#     print ("index_name", index_name)
+#     print ("metadata", metadata)
+#     index = _pinecone.Index(index_name)
+#     index.query(
+#         filter={
+#             "source": {"$eq": metadata["source"]}
+#         },
+#         top_k=10
+#     )
+    # index.delete(
+    #     filter={
+    #         "source": {"$eq": metadata["source"]}
+    #     }
+    # )
+    # print("Vector removed successfully")
+
 # * File embedding
 def handle_file_embedding(file_path: str, pass_in_index_name: str):
     files = os.listdir(file_path)
