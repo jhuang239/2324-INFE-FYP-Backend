@@ -64,7 +64,21 @@ def generate_question_background(document_name: str, num_questions: int, index_n
     # quiz_id = str(uuid.uuid4())
     # quiz_name = quiz_id + "_" + now.strftime("%Y-%m-%d %H:%M:%S")
     quiz_time = now
-    quiz_content = mcq
+    quiz_content = []
+    for question in mcq:
+        q = dict()
+        q["question"] = question["question"]
+        options = []
+        options.append(question["option_1"])
+        options.append(question["option_2"])
+        options.append(question["option_3"])
+        options.append(question["option_4"])
+        q["options"] = options
+        q["answer"] = question["answer"]
+        q["user_answer"] = ""
+        quiz_content.append(q)
+
+    print("quiz_content", quiz_content)
 
     quiz_data = quiz(user_id=user["user_id"], quiz_id=quiz_id,
                      quiz_name=quiz_name, time=quiz_time, content=quiz_content)
