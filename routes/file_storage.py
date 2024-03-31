@@ -240,7 +240,8 @@ async def move_file(user: user_dependency, passIn_object=Body()):
                             detail="Invalid authentication credentials")
 
     print(passIn_object)
-
+    print(passIn_object["file_id"])
+    print(passIn_object["parent_id"])
     file_id = passIn_object["file_id"]
     parent_id = passIn_object["parent_id"]
     collection_file.update_one({"id": file_id}, {
