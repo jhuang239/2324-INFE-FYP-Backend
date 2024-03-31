@@ -81,7 +81,7 @@ def generate_question_background(document_name: str, num_questions: int, index_n
     print("quiz_content", quiz_content)
 
     quiz_data = quiz(user_id=user["user_id"], quiz_id=quiz_id,
-                     quiz_name=quiz_name, time=quiz_time, content=quiz_content)
+                     quiz_name=quiz_name, created_at=quiz_time, updated_at=quiz_time, content=quiz_content, completed=False)
     
     collection_quiz.insert_one(quiz_data.dict())
     print("Quiz generated successfully")

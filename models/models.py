@@ -38,8 +38,10 @@ class quiz(BaseModel):
     user_id: str
     quiz_id: str
     quiz_name: str
-    time: datetime
+    created_at: datetime
+    updated_at: datetime
     content: list
+    completed: bool
 
     def __setitem__(self, key, value):
         self.__dict__[key] = value
