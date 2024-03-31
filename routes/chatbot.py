@@ -100,7 +100,7 @@ def summarize(user: user_dependency, document_name: str, num_questions: int, bac
 
     now = datetime.datetime.now()
     quiz_id = str(uuid.uuid4())
-    quiz_name = quiz_id + "_" + now.strftime("%Y-%m-%d %H:%M:%S")
+    quiz_name = "Quiz from " + document_name.split("_")[-1]
 
     background_tasks.add_task(generate_question_background, document_name, num_questions, user["user_id"].lower(), user, now, quiz_id, quiz_name)
     send_email_background(background_tasks=background_tasks, subject="Quiz generated successfully", email_to=user["email"], quiz_name=quiz_name, type="quiz")
