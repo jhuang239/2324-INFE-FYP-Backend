@@ -63,15 +63,15 @@ async def get_folders(user: user_dependency, parent_id: str):
 # * API to get all files based on parent_id
 @router.get("/getFiles")
 async def get_files(user: user_dependency, parent_id: str):
-    
-        if user is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                                detail="Invalid authentication credentials")
-    
-        files = list(collection_file.find(
-            {"user_id": user["user_id"], "parent_id": parent_id, "type": "file"}, {"_id": 0}))
 
-        return {"message": "Files retrieved successfully", "files": files}
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
+
+    files = list(collection_file.find(
+        {"user_id": user["user_id"], "parent_id": parent_id, "type": "file"}, {"_id": 0}))
+
+    return {"message": "Files retrieved successfully", "files": files}
 
 
 # * API to get all files and folders based on parent_id
@@ -104,15 +104,16 @@ async def upload_file(
                             detail="Invalid authentication credentials")
     user_id = user["user_id"]
     os.makedirs(f"temp/{user_id}", exist_ok=True)
-    embedded_files = collection_embedded_file.find({"user_id": user_id}, {"_id": 0})
+    embedded_files = collection_embedded_file.find(
+        {"user_id": user_id}, {"_id": 0})
 
     for file in files:
         exist = False
         file_id = str(uuid.uuid4())
         file_name = file_id+"_"+file.filename
         file_type = "file"
-        file_obj = file_structure(id=file_id, user_id=user["user_id"], name=file_name, parent_id=parent_id, type=file_type,updated_at=datetime.datetime.now(), created_at=datetime.datetime.now())
-        
+        file_obj = file_structure(id=file_id, user_id=user["user_id"], name=file_name, parent_id=parent_id,
+                                  type=file_type, updated_at=datetime.datetime.now(), created_at=datetime.datetime.now())
 
         for embedded in embedded_files:
             if file.filename == embedded["file_name"]:
@@ -124,13 +125,13 @@ async def upload_file(
             blob = bucket.blob(file_name)
             blob.upload_from_string(file_bytes, content_type=file.content_type)
             embedded_file_obj = embedded_file(user_id=user_id, file_id=file_id, file_name=file.filename,
-                                            created_at=datetime.datetime.now(), updated_at=datetime.datetime.now())
+                                              created_at=datetime.datetime.now(), updated_at=datetime.datetime.now())
             collection_embedded_file.insert_one(embedded_file_obj.dict())
             blob.download_to_filename(f"temp/{user_id}/{file_name}")
-            
-    background_tasks.add_task(handle_and_embedding, user["user_id"])
-    send_email_background(background_tasks=background_tasks, subject="Files uploaded successfully and embedded", email_to=user["email"], quiz_name="", type="U_E")
 
+    background_tasks.add_task(handle_and_embedding, user["user_id"])
+    send_email_background(background_tasks=background_tasks, subject="Files uploaded successfully and embedded",
+                          email_to=user["email"], quiz_name="", type="U_E")
 
     return {"message": "Files uploaded successfully and embedding in progress, you will receive an email once it is done."}
 
@@ -223,8 +224,10 @@ async def delete_folder(user: user_dependency, folder_id: str, background_tasks:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid authentication credentials")
 
-    background_tasks.add_task(delete_sub_folders_and_files, folder_id, user["user_id"])
-    send_email_background(background_tasks=background_tasks, subject="Folders and files deleted successfully", email_to=user["email"], quiz_name="", type="D")
+    background_tasks.add_task(
+        delete_sub_folders_and_files, folder_id, user["user_id"])
+    send_email_background(background_tasks=background_tasks,
+                          subject="Folders and files deleted successfully", email_to=user["email"], quiz_name="", type="D")
     return {"message": "folders and file delete in progress, you will receive an email once it is done."}
 
 
@@ -268,14 +271,16 @@ async def rename_file(user: user_dependency, passIn_object=Body()):
 
     file_id = passIn_object["file_id"]
     original_file_name = passIn_object["original_file_name"]
-    file_name = passIn_object["file_name"]
-    
+    file_name = original_file_name.split("_")[0] + passIn_object["file_name"]
+
     collection_file.update_one({"id": file_id}, {
         "$set": {"name": file_name}})
     bucket.rename_blob(bucket.blob(original_file_name), file_name)
     return {"message": "File renamed successfully"}
 
 # * API to rename a folder
+
+
 @router.put("/renameFolder")
 async def rename_folder(user: user_dependency, passIn_object=Body()):
 
@@ -291,8 +296,6 @@ async def rename_folder(user: user_dependency, passIn_object=Body()):
 
 
 # * API to upload public file
-
-
 
 
 # * Function to delete sub folders and files
@@ -322,7 +325,7 @@ def get_files_in_folder(parent_id, user_id, _files):
 
 # * background task to handle file upload and embedding
 def handle_and_embedding(user_id: str):
-    
+
     if not os.listdir(f"temp/{user_id}"):
         return
     else:
