@@ -57,7 +57,9 @@ async def add_discussion(user: user_dependency, obj: discussion_body = Depends(c
         blob.upload_from_file(file.file)
         file_list.append(file_name)
 
-    discussion = discussion_schema()
+    discussion = discussion_schema(user_id=user["user_id"], author=user["name"], topic=obj.topic, category=obj.category, description=obj.description, banner_img=banner_img_name, file=file_list)
+
+    print (discussion.dict())
 
 
     return {"message": "success"}

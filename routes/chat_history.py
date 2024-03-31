@@ -28,12 +28,12 @@ async def get_chat(id: str, user: user_dependency):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid authentication credentials")
     print(user)
-    histories = collection_chat.find(
-        {{"_id": ObjectId(id)}})
+    histories_list = []
+    histories = collection_chat.find_one(
+        {{"_id": ObjectId(id),},{"_id":0}})
     if (histories):
-        return list_serial_message(histories)
-    else:
-        return {"error": "not found!"}
+        histories_list.append(histories)
+        return histories_list
 
 
 @router.post("/add_chat")
