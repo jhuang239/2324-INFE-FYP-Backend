@@ -41,8 +41,7 @@ async def put_quiz(user: user_dependency, quiz_id: str, obj=Body()):
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid authentication credentials")
-    obj["user_id"] = user["user_id"]
-    result = collection_quiz.find_one_and_update({"quiz_id": quiz_id}, {"$set": dict(obj)})
+    result = collection_quiz.find_one_and_update({"quiz_id": quiz_id}, {"$set": {"completed": True}})
     if (result):
         return {"success": "update success!"}
     else:

@@ -75,7 +75,6 @@ def generate_question_background(document_name: str, num_questions: int, index_n
         options.append(question["option_4"])
         q["options"] = options
         q["answer"] = question["answer"]
-        q["user_answer"] = ""
         quiz_content.append(q)
 
     print("quiz_content", quiz_content)
