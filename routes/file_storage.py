@@ -3,7 +3,7 @@ import os
 import shutil
 from config.firebaeConfig import cred
 from firebase_admin import storage, initialize_app
-from fastapi import  UploadFile, APIRouter, Depends, HTTPException, Body, BackgroundTasks
+from fastapi import UploadFile, APIRouter, Depends, HTTPException, Body, BackgroundTasks
 from .auth import get_current_user
 from typing import Annotated
 from starlette import status
@@ -107,27 +107,30 @@ async def upload_file(
     embedded_files = collection_embedded_file.find(
         {"user_id": user_id}, {"_id": 0})
 
+    file_exist = False
     for file in files:
-        exist = False
+        if file.filename in [embedded["file_name"] for embedded in embedded_files]:
+            file_exist = True
+            break
+
+    if file_exist:
+        return {"message": "File name already exist, please upload other file!"}
+
+    for file in files:
         file_id = str(uuid.uuid4())
         file_name = file_id+"_"+file.filename
         file_type = "file"
         file_obj = file_structure(id=file_id, user_id=user["user_id"], name=file_name, parent_id=parent_id,
                                   type=file_type, updated_at=datetime.datetime.now(), created_at=datetime.datetime.now())
 
-        for embedded in embedded_files:
-            if file.filename == embedded["file_name"]:
-                exist = True
-                break
-        if not exist:
-            collection_file.insert_one(file_obj.dict())
-            file_bytes = await file.read()
-            blob = bucket.blob(file_name)
-            blob.upload_from_string(file_bytes, content_type=file.content_type)
-            embedded_file_obj = embedded_file(user_id=user_id, file_id=file_id, file_name=file.filename,
-                                              created_at=datetime.datetime.now(), updated_at=datetime.datetime.now())
-            collection_embedded_file.insert_one(embedded_file_obj.dict())
-            blob.download_to_filename(f"temp/{user_id}/{file_name}")
+        collection_file.insert_one(file_obj.dict())
+        file_bytes = await file.read()
+        blob = bucket.blob(file_name)
+        blob.upload_from_string(file_bytes, content_type=file.content_type)
+        embedded_file_obj = embedded_file(user_id=user_id, file_id=file_id, file_name=file.filename,
+                                          created_at=datetime.datetime.now(), updated_at=datetime.datetime.now())
+        collection_embedded_file.insert_one(embedded_file_obj.dict())
+        blob.download_to_filename(f"temp/{user_id}/{file_name}")
 
     background_tasks.add_task(handle_and_embedding, user["user_id"])
     send_email_background(background_tasks=background_tasks, subject="Files uploaded successfully and embedded",
