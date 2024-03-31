@@ -34,6 +34,7 @@ def individual_serial_history_doc_name(history) -> dict:
         "time": history["time"]
     }
 
+
 def list_serial_history_doc_name(histories) -> list:
     return [individual_serial_history_doc_name(history) for history in histories]
 
@@ -46,6 +47,7 @@ def individual_serial_history_doc(history) -> dict:
         "time": history["time"],
         "message": history["message"],
     }
+
 
 def list_serial_history_doc(histories) -> list:
     return [individual_serial_history_doc(history) for history in histories]
@@ -61,6 +63,7 @@ def individual_serial_quiz(quiz) -> dict:
         "completed": quiz["completed"],
     }
 
+
 def list_serial_quiz(quizzes) -> list:
     return [individual_serial_quiz(quiz) for quiz in quizzes]
 
@@ -73,6 +76,7 @@ def individual_serial_discussion(discussion) -> dict:
         "banner_img": discussion["banner_img"],
         "category": discussion["category"],
     }
+
 
 def list_serial_discussion(discussions) -> list:
     return [individual_serial_discussion(discussion) for discussion in discussions]

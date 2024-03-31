@@ -34,6 +34,7 @@ class file_structure(BaseModel):
     def __setitem__(self, key, value):
         self.__dict__[key] = value
 
+
 class quiz(BaseModel):
     user_id: str
     quiz_id: str
@@ -58,25 +59,29 @@ class embedded_file(BaseModel):
         self.__dict__[key] = value
 
 
-class public_file(BaseModel):
-    file_id: str
-    user_id: str
-    file_name: str
-    created_at: datetime
-    updated_at: datetime
-    tags: list
+# class public_file(BaseModel):
+#     file_id: str
+#     user_id: str
+#     file_name: str
+#     created_at: datetime
+#     updated_at: datetime
+#     tags: list
 
-    def __setitem__(self, key, value):
-        self.__dict__[key] = value
+#     def __setitem__(self, key, value):
+#         self.__dict__[key] = value
+
 
 class comments(BaseModel):
+    discussion_id: str
     user_id: str
     author: str
     detail: str
     created_at: datetime
+    updated_at: datetime
 
     def __setitem__(self, key, value):
         self.__dict__[key] = value
+
 
 class discussion_schema(BaseModel):
     user_id: str
@@ -86,10 +91,8 @@ class discussion_schema(BaseModel):
     created_at: datetime
     updated_at: datetime
     banner_img: str
-    file: list
+    files: list
     description: str
-    comments: list[comments]
 
     def __setitem__(self, key, value):
         self.__dict__[key] = value
-
