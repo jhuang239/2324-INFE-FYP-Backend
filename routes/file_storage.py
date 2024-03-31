@@ -3,7 +3,7 @@ import os
 import shutil
 from config.firebaeConfig import cred
 from firebase_admin import storage, initialize_app
-from fastapi import File, UploadFile, APIRouter, Depends, HTTPException, Body, BackgroundTasks
+from fastapi import  UploadFile, APIRouter, Depends, HTTPException, Body, BackgroundTasks
 from .auth import get_current_user
 from typing import Annotated
 from starlette import status
@@ -232,7 +232,7 @@ async def delete_folder(user: user_dependency, folder_id: str, background_tasks:
 
 
 # * API to move a file
-@router.put("/moveFile")
+@router.post("/moveFile")
 async def move_file(user: user_dependency, passIn_object=Body()):
 
     if user is None:
@@ -250,7 +250,7 @@ async def move_file(user: user_dependency, passIn_object=Body()):
 
 
 # * API to move a folder
-@router.put("/moveFolder")
+@router.post("/moveFolder")
 async def move_folder(user: user_dependency, passIn_object=Body()):
 
     if user is None:
@@ -265,7 +265,7 @@ async def move_folder(user: user_dependency, passIn_object=Body()):
 
 
 # * API to rename a file
-@router.put("/renameFile")
+@router.post("/renameFile")
 async def rename_file(user: user_dependency, passIn_object=Body()):
 
     if user is None:
@@ -284,7 +284,7 @@ async def rename_file(user: user_dependency, passIn_object=Body()):
 # * API to rename a folder
 
 
-@router.put("/renameFolder")
+@router.post("/renameFolder")
 async def rename_folder(user: user_dependency, passIn_object=Body()):
 
     if user is None:
