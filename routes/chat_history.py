@@ -22,7 +22,7 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 #     return history
 
 
-@router.get("/get_chat}")
+@router.get("/get_chat")
 async def get_chat(id: str, user: user_dependency):
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
