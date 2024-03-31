@@ -269,6 +269,7 @@ async def rename_file(user: user_dependency, passIn_object=Body()):
     file_id = passIn_object["file_id"]
     original_file_name = passIn_object["original_file_name"]
     file_name = passIn_object["file_name"]
+    
     collection_file.update_one({"id": file_id}, {
         "$set": {"name": file_name}})
     bucket.rename_blob(bucket.blob(original_file_name), file_name)
