@@ -239,6 +239,8 @@ async def move_file(user: user_dependency, passIn_object=Body()):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid authentication credentials")
 
+    print(passIn_object)
+
     file_id = passIn_object["file_id"]
     parent_id = passIn_object["parent_id"]
     collection_file.update_one({"id": file_id}, {
