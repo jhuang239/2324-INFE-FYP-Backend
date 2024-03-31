@@ -58,6 +58,7 @@ def individual_serial_quiz(quiz) -> dict:
         "quiz_name": quiz["quiz_name"],
         "created_at": quiz["created_at"],
         "updated_at": quiz["updated_at"],
+        "completed": quiz["completed"],
     }
 
 def list_serial_quiz(quizzes) -> list:
