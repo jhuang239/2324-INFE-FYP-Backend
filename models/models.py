@@ -44,15 +44,6 @@ class quiz(BaseModel):
     def __setitem__(self, key, value):
         self.__dict__[key] = value
 
-class quiz_answer(BaseModel):
-    user_id: str
-    quiz_id: str
-    quiz_name: str
-    time: datetime
-    answer_content: list
-
-    def __setitem__(self, key, value):
-        self.__dict__[key] = value
 
 class embedded_file(BaseModel):
     user_id: str

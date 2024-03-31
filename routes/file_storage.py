@@ -70,6 +70,7 @@ async def get_files(user: user_dependency, parent_id: str):
     
         files = list(collection_file.find(
             {"user_id": user["user_id"], "parent_id": parent_id, "type": "file"}, {"_id": 0}))
+
         return {"message": "Files retrieved successfully", "files": files}
 
 
@@ -111,13 +112,14 @@ async def upload_file(
         file_name = file_id+"_"+file.filename
         file_type = "file"
         file_obj = file_structure(id=file_id, user_id=user["user_id"], name=file_name, parent_id=parent_id, type=file_type,updated_at=datetime.datetime.now(), created_at=datetime.datetime.now())
-        collection_file.insert_one(file_obj.dict())
+        
 
         for embedded in embedded_files:
             if file.filename == embedded["file_name"]:
                 exist = True
                 break
         if not exist:
+            collection_file.insert_one(file_obj.dict())
             file_bytes = await file.read()
             blob = bucket.blob(file_name)
             blob.upload_from_string(file_bytes, content_type=file.content_type)

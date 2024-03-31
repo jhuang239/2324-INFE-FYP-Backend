@@ -51,6 +51,18 @@ def list_serial_history_doc(histories) -> list:
     return [individual_serial_history_doc(history) for history in histories]
 
 
+def individual_serial_quiz(quiz) -> dict:
+    return {
+        "user_id": quiz["user_id"],
+        "quiz_id": str(quiz["quiz_id"]),
+        "quiz_name": quiz["quiz_name"],
+        "time": quiz["time"],
+    }
+
+def list_serial_quiz(quizzes) -> list:
+    return [individual_serial_quiz(quiz) for quiz in quizzes]
+
+
 def get_user(user) -> dict:
     return {
         "user_id": user["user_id"],
