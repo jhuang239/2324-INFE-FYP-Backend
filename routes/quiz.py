@@ -6,6 +6,7 @@ from .auth import get_current_user
 from typing import Annotated
 from starlette import status
 from schemas.schemas import list_serial_quiz
+from pymongo import DESCENDING
 
 
 router = APIRouter(
@@ -21,7 +22,7 @@ async def get_all_quiz(user: user_dependency):
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid authentication credentials")
-    quizzes = list(collection_quiz.find({"user_id": user["user_id"]}, {"_id": 0}))
+    quizzes = list(collection_quiz.find({"user_id": user["user_id"]}, {"_id": 0}).sort("created_at", DESCENDING))
     return list_serial_quiz(quizzes)
 
 

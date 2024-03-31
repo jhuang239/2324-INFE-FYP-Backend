@@ -65,6 +65,19 @@ def list_serial_quiz(quizzes) -> list:
     return [individual_serial_quiz(quiz) for quiz in quizzes]
 
 
+def individual_serial_discussion(discussion) -> dict:
+    return {
+        "_id": str(discussion["_id"]),
+        "author": discussion["author"],
+        "topic": discussion["topic"],
+        "banner_img": discussion["banner_img"],
+        "category": discussion["category"],
+    }
+
+def list_serial_discussion(discussions) -> list:
+    return [individual_serial_discussion(discussion) for discussion in discussions]
+
+
 def get_user(user) -> dict:
     return {
         "user_id": user["user_id"],

@@ -1,8 +1,7 @@
 import datetime
 import os
 import shutil
-from config.firebaeConfig import cred
-from firebase_admin import storage, initialize_app
+from config.firebaeConfig import bucket
 from fastapi import UploadFile, APIRouter, Depends, HTTPException, Body, BackgroundTasks
 from .auth import get_current_user
 from typing import Annotated
@@ -19,8 +18,6 @@ router = APIRouter(
 )
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
-initialize_app(cred, {'storageBucket': 'fyp-file-storage.appspot.com'})
-bucket = storage.bucket()
 
 
 # * API to create a folder

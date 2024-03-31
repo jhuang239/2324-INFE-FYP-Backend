@@ -22,14 +22,14 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 #     return history
 
 
-@router.get("/chat/{chat_name}")
-async def get_chat_by_username_chatname(chat_name: str, user: user_dependency):
+@router.get("/get_chat}")
+async def get_chat(id: str, user: user_dependency):
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid authentication credentials")
     print(user)
     histories = collection_chat.find(
-        {"user_id": user["user_id"], "chat_name": chat_name})
+        {{"_id": ObjectId(id)}})
     if (histories):
         return list_serial_message(histories)
     else:
@@ -41,8 +41,6 @@ async def post_history(user: user_dependency, passIn_history=Body()):
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid authentication credentials")
-    # history = chat_history(**passIn_history)
-    # history.__setattr__("user_id", user["user_id"])
     passIn_history["user_id"] = user["user_id"]
     result = collection_chat.insert_one(dict(passIn_history))
     if (result.acknowledged):
@@ -51,7 +49,7 @@ async def post_history(user: user_dependency, passIn_history=Body()):
         return {"error": "insert failed!"}
 
 
-@router.put("/chat/{id}")
+@router.put("/update_chat")
 async def update_chat(user: user_dependency, id: str, history=Body()):
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
@@ -64,7 +62,7 @@ async def update_chat(user: user_dependency, id: str, history=Body()):
         return {"error": "update failed!"}
 
 
-@router.delete("/chat/{id}")
+@router.delete("/delete_chat")
 async def delete_chat(user: user_dependency, id: str):
 
     if user is None:
@@ -78,12 +76,12 @@ async def delete_chat(user: user_dependency, id: str):
         return {"error": "delete failed!"}
 
 
-@router.get("/chat/all/{user_id}")
-async def get_all_chat(user_id: str, user: user_dependency):
+@router.get("/get_all_chat")
+async def get_all_chat(user: user_dependency):
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid authentication credentials")
-    histories = collection_chat.find({"user_id": user_id})
+    histories = list(collection_chat.find({"user_id": user["user_id"]}))
     if (histories):
         return list_serial(histories)
     else:

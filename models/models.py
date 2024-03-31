@@ -68,3 +68,28 @@ class public_file(BaseModel):
 
     def __setitem__(self, key, value):
         self.__dict__[key] = value
+
+class comments(BaseModel):
+    user_id: str
+    author: str
+    detail: str
+    created_at: datetime
+
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
+class discussion_schema(BaseModel):
+    user_id: str
+    author: str
+    topic: str
+    category: str
+    created_at: datetime
+    updated_at: datetime
+    banner_img: str
+    file: list
+    description: str
+    comments: list[comments]
+
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
