@@ -232,7 +232,7 @@ async def delete_folder(user: user_dependency, folder_id: str, background_tasks:
 
 
 # * API to move a file
-@router.post("/moveFile")
+@router.put("/moveFile")
 async def move_file(user: user_dependency, passIn_object=Body()):
 
     if user is None:
@@ -250,7 +250,7 @@ async def move_file(user: user_dependency, passIn_object=Body()):
 
 
 # * API to move a folder
-@router.post("/moveFolder")
+@router.put("/moveFolder")
 async def move_folder(user: user_dependency, passIn_object=Body()):
 
     if user is None:
@@ -265,7 +265,7 @@ async def move_folder(user: user_dependency, passIn_object=Body()):
 
 
 # * API to rename a file
-@router.post("/renameFile")
+@router.put("/renameFile")
 async def rename_file(user: user_dependency, passIn_object=Body()):
 
     if user is None:
@@ -284,7 +284,7 @@ async def rename_file(user: user_dependency, passIn_object=Body()):
 # * API to rename a folder
 
 
-@router.post("/renameFolder")
+@router.put("/renameFolder")
 async def rename_folder(user: user_dependency, passIn_object=Body()):
 
     if user is None:
