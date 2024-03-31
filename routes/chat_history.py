@@ -29,8 +29,8 @@ async def get_chat(id: str, user: user_dependency):
                             detail="Invalid authentication credentials")
     print(user)
     histories_list = []
-    histories = collection_chat.find_one(
-        {{"_id": ObjectId(id),},{"_id":0}})
+    histories = collection_chat.find_one({"_id": ObjectId(id)},{"_id":0})
+    print(histories)
     if (histories):
         histories_list.append(histories)
         return histories_list
