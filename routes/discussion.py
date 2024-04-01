@@ -12,6 +12,7 @@ from config.firebaeConfig import bucket
 import datetime
 import uuid
 from pymongo import DESCENDING
+import re
 
 router = APIRouter(
     prefix="/discussion",
@@ -117,6 +118,25 @@ async def get_discussion_by_category(category: str, user: user_dependency):
 
     discussions = list(collection_discussion.find({"category": category}, {
                        "_id": 0}).sort("updated_at", DESCENDING).limit(20))
+    if (discussions):
+        return list_serial_discussion(discussions)
+    else:
+        return {"error": "not found!"}
+
+
+@router.get("/get_discussion_by_topic")
+async def get_discussion_by_topic(topic: str, user: user_dependency):
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
+
+    search_term = topic
+    pattern = re.compile(f'.*{re.escape(search_term)}.*', re.IGNORECASE)
+
+    query = {"topic": {"$regex": pattern}}
+
+    discussions = list(collection_discussion.find(
+        query, {"_id": 0}).sort("updated_at", DESCENDING).limit(20))
     if (discussions):
         return list_serial_discussion(discussions)
     else:
