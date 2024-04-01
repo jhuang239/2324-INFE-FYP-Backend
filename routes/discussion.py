@@ -116,8 +116,8 @@ async def get_discussion_by_category(category: str, user: user_dependency):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid authentication credentials")
 
-    discussions = list(collection_discussion.find({"category": category}, {
-                       "_id": 0}).sort("updated_at", DESCENDING).limit(20))
+    discussions = list(collection_discussion.find(
+        {"category": category}).sort("updated_at", DESCENDING).limit(20))
     if (discussions):
         return list_serial_discussion(discussions)
     else:
@@ -136,7 +136,7 @@ async def get_discussion_by_topic(topic: str, user: user_dependency):
     query = {"topic": {"$regex": pattern}}
 
     discussions = list(collection_discussion.find(
-        query, {"_id": 0}).sort("updated_at", DESCENDING).limit(20))
+        query).sort("updated_at", DESCENDING).limit(20))
     if (discussions):
         return list_serial_discussion(discussions)
     else:
