@@ -1,5 +1,5 @@
 from models.models import discussion_schema
-from config.database import collection_discussion
+from config.database import collection_discussion, collection_discussion_comment
 from schemas.schemas import list_serial_discussion
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, Form, File
 from fastapi.encoders import jsonable_encoder
@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from config.firebaeConfig import bucket
 import datetime
 import uuid
-from pymongo import DESCENDING
+from pymongo import DESCENDING, ASCENDING
 import re
 
 router = APIRouter(
@@ -87,8 +87,12 @@ async def get_discussion(id: str, user: user_dependency):
     discussion = collection_discussion.find_one(
         {"_id": ObjectId(id)}, {"_id": 0})
 
+    comments = list(collection_discussion_comment.find(
+        {"discussion_id": id}, {"_id": 0}).sort("created_at", ASCENDING))
+
     if (discussion):
         discussion["id"] = id
+        discussion["comments"] = comments
         return discussion
     else:
         return {"error": "discussion not found!"}
