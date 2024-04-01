@@ -70,7 +70,7 @@ def list_serial_quiz(quizzes) -> list:
 
 def individual_serial_discussion(discussion) -> dict:
     return {
-        "_id": str(discussion["_id"]),
+        "id": str(discussion["_id"]),
         "author": discussion["author"],
         "topic": discussion["topic"],
         "banner_img": discussion["banner_img"],

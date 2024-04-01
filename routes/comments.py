@@ -41,12 +41,12 @@ async def add_comment(user: user_dependency, obj: comment_body = Body()):
 
 
 # * API to get all comments by discussion_id
-@router.get("/get_comments")
-async def get_comments(user: user_dependency, discussion_id: str):
-    result = list(collection_discussion_comment.find(
-        {"discussion_id": discussion_id}, {"_id": 0}).sort("created_at", ASCENDING))
+# @router.get("/get_comments")
+# async def get_comments(user: user_dependency, discussion_id: str):
+#     result = list(collection_discussion_comment.find(
+#         {"discussion_id": discussion_id}, {"_id": 0}).sort("created_at", ASCENDING))
 
-    if result:
-        return result
-    else:
-        return {"message": "No comments found for this discussion"}
+#     if result:
+#         return result
+#     else:
+#         return {"message": "No comments found for this discussion"}
