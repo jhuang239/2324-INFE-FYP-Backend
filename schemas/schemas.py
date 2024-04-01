@@ -1,3 +1,13 @@
+from config.firebaeConfig import bucket
+import datetime
+
+
+def get_file_link(file_name):
+    blob = bucket.blob(file_name)
+    link = blob.generate_signed_url(datetime.timedelta(days=7), method='GET')
+    return {"link": link, "file_name": file_name}
+
+
 def individual_serial(history) -> dict:
     return {
         "id": str(history["_id"]),
@@ -73,7 +83,7 @@ def individual_serial_discussion(discussion) -> dict:
         "id": str(discussion["_id"]),
         "author": discussion["author"],
         "topic": discussion["topic"],
-        "banner_img": discussion["banner_img"],
+        "banner_img": get_file_link(discussion["banner_img"]),
         "category": discussion["category"],
         "created_at": discussion["created_at"],
     }

@@ -1,6 +1,6 @@
 from models.models import discussion_schema
 from config.database import collection_discussion, collection_discussion_comment
-from schemas.schemas import list_serial_discussion
+from schemas.schemas import list_serial_discussion, get_file_link
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, Form, File
 from fastapi.encoders import jsonable_encoder
 from .auth import get_current_user
@@ -86,6 +86,9 @@ async def get_discussion(id: str, user: user_dependency):
 
     discussion = collection_discussion.find_one(
         {"_id": ObjectId(id)}, {"_id": 0})
+
+    discussion["banner_img"] = get_file_link(discussion["banner_img"])
+    discussion["files"] = [get_file_link(file) for file in discussion["files"]]
 
     comments = list(collection_discussion_comment.find(
         {"discussion_id": id}, {"_id": 0}).sort("created_at", ASCENDING))
