@@ -75,6 +75,7 @@ def individual_serial_discussion(discussion) -> dict:
         "topic": discussion["topic"],
         "banner_img": discussion["banner_img"],
         "category": discussion["category"],
+        "created_at": discussion["created_at"],
     }
 
 

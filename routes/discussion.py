@@ -101,8 +101,8 @@ async def get_all_discussions(user: user_dependency):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid authentication credentials")
 
-    discussions = list(collection_discussion.find(
-        {}, {"_id": 0}).sort("updated_at", DESCENDING).limit(20))
+    discussions = list(collection_discussion.find().sort(
+        "updated_at", DESCENDING).limit(20))
     if (discussions):
         return list_serial_discussion(discussions)
     else:
