@@ -150,6 +150,5 @@ def embedding_youtube_video(video_url: str, user_id: str):
         YoutubeAudioLoader([video_url], save_dir=save_dir),
         OpenAIWhisperParser(api_key=OPENAI_API_KEY)
     )
-
     docs = loader.load()
-    print("docs", docs)
+    return docs
