@@ -82,6 +82,7 @@ async def get_video(user: user_dependency, url: str):
 
     yt = YouTube(url)
     obj = {
+        "id": yt.video_id,
         "title": yt.title,
         "thumbnail": yt.thumbnail_url,
         "author": yt.author,
