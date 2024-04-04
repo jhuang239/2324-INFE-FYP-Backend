@@ -96,3 +96,16 @@ class discussion_schema(BaseModel):
 
     def __setitem__(self, key, value):
         self.__dict__[key] = value
+
+
+class youtube_obj(BaseModel):
+    url: str
+    thumbnail: str
+    title: str
+    author: str
+    views: int
+    length: int
+    publish_date: datetime
+
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value

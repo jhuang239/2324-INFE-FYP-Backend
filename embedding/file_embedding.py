@@ -10,6 +10,9 @@ from typing import Any, Dict, List
 from langchain.chains import ConversationalRetrievalChain
 from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
 from langchain.output_parsers import StructuredOutputParser, ResponseSchema
+from langchain.document_loaders.generic import GenericLoader
+from langchain.document_loaders.parsers import OpenAIWhisperParser
+from langchain.document_loaders.blob_loaders.youtube_audio import YoutubeAudioLoader
 load_dotenv()
 
 OPENAI_API_KEY = os.getenv("SECRET_KEY")
@@ -138,7 +141,15 @@ def generate_mcq_from_document(summarization: str, num_questions: int):
     user_query = prompt.format_prompt(user_prompt=summarization)
     return chat.invoke(user_query.to_messages())
 
-    # return_json = parse_json(user_query_output.content)
-    # print(return_json)
 
-    # return return_json
+def embedding_youtube_video(video_url: str, user_id: str):
+    save_dir = "temp/" + user_id + "/"
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    loader = GenericLoader(
+        YoutubeAudioLoader([video_url], save_dir=save_dir),
+        OpenAIWhisperParser(api_key=OPENAI_API_KEY)
+    )
+
+    docs = loader.load()
+    print("docs", docs)
