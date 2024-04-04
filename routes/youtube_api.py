@@ -10,6 +10,7 @@ import json
 from embedding.file_embedding import embedding_youtube_video, generate_mcq_from_document, parse_json
 from email_func.send_email import send_email_background
 import datetime
+import shutil
 
 router = APIRouter(
     prefix="/yt",
@@ -114,7 +115,6 @@ async def generate_quiz(user: user_dependency, url: str, num_question: int, back
 
 
 def background_embedding_youtube_video(video_url: str, user_id: str, quiz_id: str, quiz_name: str, num_questions: int):
-
     docs = embedding_youtube_video(video_url, user_id)
     mcq = generate_mcq_from_document(docs[0].page_content, num_questions)
     mcq = parse_json(mcq.content)
@@ -140,4 +140,5 @@ def background_embedding_youtube_video(video_url: str, user_id: str, quiz_id: st
 
     collection_quiz.insert_one(quiz_data.dict())
     print("Quiz generated successfully")
+    shutil.rmtree(f"temp/{user_id}")
     return
