@@ -19,7 +19,6 @@ router = APIRouter(
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
 
-
 # * API to create a folder
 @router.post("/createFolder")
 async def create_folder(
@@ -100,7 +99,7 @@ async def upload_file(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid authentication credentials")
     user_id = user["user_id"]
-    os.makedirs(f"temp/{user_id}", exist_ok=True)
+
     embedded_files = collection_embedded_file.find(
         {"user_id": user_id}, {"_id": 0})
 
@@ -112,6 +111,8 @@ async def upload_file(
 
     if file_exist:
         return {"message": "File name already exist, please upload other file!"}
+
+    os.makedirs(f"temp/{user_id}", exist_ok=True)
 
     for file in files:
         file_id = str(uuid.uuid4())
