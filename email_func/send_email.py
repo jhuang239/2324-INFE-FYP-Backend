@@ -22,7 +22,7 @@ def send_email_background(background_tasks: BackgroundTasks, subject: str, email
 
     if type == "quiz":
         html = """<p>Your quiz: """ + quiz_name + """ has been generated. Please check it on the application.</p>"""
-    elif type == "U_D":
+    elif type == "U_E":
         html = """<p>The file is successfully uploaded and embedded</p>"""
     else :
         html = """<p>Folder and related files successfully removed</p>"""
