@@ -60,6 +60,25 @@ async def add_comment(user: user_dependency, obj: comment_body = Depends(checker
         return {"message": "Failed to add comment"}
 
 
+# * API to add comment withou file
+@router.post("/add_comment_xfile")
+async def add_comment_xfile(user: user_dependency, obj: comment_body = Depends(checker)):
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials")
+
+    file_list = []
+    now = datetime.datetime.now()
+    comment = comments(discussion_id=obj.discussion_id,
+                       user_id=user["user_id"], author=user["name"], detail=obj.detail, files=file_list, created_at=now, updated_at=now)
+
+    result = collection_discussion_comment.insert_one(comment.dict())
+    if result.acknowledged:
+        return {"message": str(result.inserted_id)}
+    else:
+        return {"message": "Failed to add comment"}
+
+
 # * API to get all comments by discussion_id
 @router.get("/get_comments")
 async def get_comments(user: user_dependency, discussion_id: str):
