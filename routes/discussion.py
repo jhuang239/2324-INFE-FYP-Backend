@@ -87,11 +87,8 @@ async def get_discussion(id: str, user: user_dependency):
     discussion = collection_discussion.find_one(
         {"_id": ObjectId(id)}, {"_id": 0})
 
-    if(discussion["banner_img"] != ""):
-        discussion["banner_img"] = get_file_link(discussion["banner_img"])
-    
-    if(len(discussion["files"]) > 0):
-        discussion["files"] = [get_file_link(file) for file in discussion["files"]]
+    discussion["banner_img"] = get_file_link(discussion["banner_img"])
+    discussion["files"] = [get_file_link(file) for file in discussion["files"]]
 
     comments = list(collection_discussion_comment.find(
         {"discussion_id": id}, {"_id": 0}).sort("created_at", ASCENDING))
