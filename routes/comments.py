@@ -89,10 +89,9 @@ async def get_comments(user: user_dependency, discussion_id: str):
 
     for result in results:
         result["files"] = [get_file_link(file) for file in result["files"]]
-
     print(results)
 
-    if result:
-        return result
+    if len(results) > 0:
+        return results
     else:
         return {"message": "No comments found for this discussion"}

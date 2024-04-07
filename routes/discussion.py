@@ -93,6 +93,9 @@ async def get_discussion(id: str, user: user_dependency):
     comments = list(collection_discussion_comment.find(
         {"discussion_id": id}, {"_id": 0}).sort("created_at", ASCENDING))
 
+    for comment in comments:
+        comment["files"] = [get_file_link(file) for file in comment["files"]]
+
     if (discussion):
         discussion["id"] = id
         discussion["comments"] = comments
