@@ -76,6 +76,7 @@ class comments(BaseModel):
     user_id: str
     author: str
     detail: str
+    files: list
     created_at: datetime
     updated_at: datetime
 
